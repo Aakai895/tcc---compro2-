@@ -58,7 +58,7 @@ export default function Suporte() {
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.card}>
-              <Image source={require('../../assets/icones/FaceIcon.JPG')}
+              <Image source={require('../../assets/icones/FaceIcon.jpg')}
                 style={styles.icon}
                 resizeMode="contain"
               />
