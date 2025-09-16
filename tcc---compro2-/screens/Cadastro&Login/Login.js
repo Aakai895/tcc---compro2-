@@ -9,6 +9,7 @@ import { Eye, EyeOff } from 'lucide-react-native';
 import { useFonts } from 'expo-font';
 import { getResponsiveSizes } from '../../Style/Responsive';
 import { useNavigation } from '@react-navigation/native';
+import { loginUser } from "../firebase/authFirebase";
 
 export default function LoginScreen() {
   const navigation = useNavigation();
@@ -39,7 +40,7 @@ export default function LoginScreen() {
   });
 
   useEffect(() => {
-    const onShow = (e: any) => {
+    const onShow = (e) => {
       const h = e.endCoordinates?.height || 0;
       LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
       setKeyboardHeight(h);
@@ -83,13 +84,17 @@ export default function LoginScreen() {
   const orTextColor = keyboardVisible ? '#fff' : '#b1adad';
   const iconColor = keyboardVisible ? '#fff' : '#aaa';
 
-  const handleLogin = () => {
+  async function handleLogin() {
     if (!cpfCnpj.trim() || !senha.trim()) {
       alert('Por favor, preencha todos os campos obrigatórios.');
       return;
     }
-    navigation.navigate('TelasUsuario');
-  };
+    try {
+      await loginUser(cpfCnpj, senha);
+    } catch (error) {
+      console.log("Erro ao logar:", error.message);
+    }
+  }
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>

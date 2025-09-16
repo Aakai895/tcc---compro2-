@@ -46,7 +46,7 @@ export default function CadastroUsuario2() {
   });
 
   useEffect(() => {
-    const onShow = (e: any) => {
+    const onShow = (e) => {
       const h = e.endCoordinates?.height || 0;
       LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
       setKeyboardHeight(h);
