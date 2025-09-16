@@ -1,0 +1,14 @@
+
+APAGAR DADOS (HUMORES)
+
+<TouchableOpacity
+  style={{ padding: 12, backgroundColor: 'red', margin: 10, borderRadius: 8 }}
+  onPress={async () => {
+    await AsyncStorage.removeItem('registrosHumor');
+    alert('Registros apagados!');
+    carregarHistorico();  // atualiza a lista depois de apagar
+  }}
+>
+  <Text style={{ color: '#fff', textAlign: 'center' }}>Apagar Registros</Text>
+</TouchableOpacity>
+
