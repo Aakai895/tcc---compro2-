@@ -4,11 +4,14 @@ import { View, Text, TextInput, TouchableOpacity, Image, ScrollView,
   LayoutAnimation, Animated, Platform,} from 'react-native';
 import { AntDesign, FontAwesome } from '@expo/vector-icons';
 import { useFonts } from 'expo-font';
+import { Eye, EyeOff } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import CadastroFundo from '../../Style/Backgrounds/CadEmpresa_Fundo';
 import { getResponsiveSizes } from '../../Style/Responsive';
 import { Picker } from '@react-native-picker/picker';
+import { registerUser } from "../../firebase/authFirebase";
+import { addUser } from "../../firebase/cloudFirestore";
 
 export default function CadastroEmpresaScreen() {
   const navigation = useNavigation();
@@ -34,6 +37,9 @@ export default function CadastroEmpresaScreen() {
   const [estado, setEstado] = useState('SP');
   const [cidade, setCidade] = useState('SP');
   const [endereco, setEndereco] = useState('');
+  const [email, setEmail] = useState('');
+  const [senha, setSenha] = useState('');
+  const [passwordVisible, setPasswordVisible] = useState(false);
 
   const animatedOffset = useRef(new Animated.Value(0)).current;
 
@@ -80,12 +86,31 @@ export default function CadastroEmpresaScreen() {
   const placeholderColor = keyboardVisible ? '#fff' : '#aaa';
   const iconColor = keyboardVisible ? '#fff' : '#aaa';
 
-  const handleProximo = () => {
-    if (!empresa || !cnpj || !telefone1 || !estado || !cidade || !endereco || !afe) {
+  const handleProximo = async () => {
+    if (!empresa || !cnpj || !telefone1 || !estado || !cidade || !endereco || !afe || !email || !senha) {
       alert('Preencha todos os campos obrigatórios.');
       return;
     }
-    navigation.navigate('CadastroClinica2');
+    try {
+      const userCredential = await registerUser(email, senha);
+      const userId = userCredential.user.uid;
+      await addUser(userId, {
+        empresa,
+        cnpj,
+        afe,
+        telefone1,
+        telefone2,
+        estado,
+        cidade,
+        endereco,
+        email,
+        tipoCadastro: 'clinica',
+      });
+      alert('Cadastro realizado com sucesso!');
+      navigation.navigate('CadastroClinica2');
+    } catch (error) {
+      alert('Erro ao cadastrar: ' + error.message);
+    }
   };
 
   if (!fontsLoaded) return null;
@@ -267,12 +292,41 @@ export default function CadastroEmpresaScreen() {
             Endereço (Rua, número)
           </Text>
           <TextInput
-            style={[styles.input, { marginBottom: 25, borderColor, color: textColor }]}
+            style={[styles.input, { borderColor, color: textColor }]}
             placeholder="Ex: Andrade, 200"
             placeholderTextColor={placeholderColor}
             value={endereco}
             onChangeText={setEndereco}
           />
+
+          <Text style={[styles.label, { color: textColor }]}>
+            Email
+          </Text>
+          <TextInput
+            style={[styles.input, { borderColor, color: textColor }]}
+            placeholder="Digite aqui..."
+            placeholderTextColor={placeholderColor}
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+          />
+
+          <Text style={[styles.label, { color: textColor }]}>
+            Senha
+          </Text>
+          <View style={[styles.passwordWrapper, { borderColor }]}>
+            <TextInput
+              placeholder="Digite aqui..."
+              placeholderTextColor={placeholderColor}
+              secureTextEntry={!passwordVisible}
+              style={[styles.passwordInput, { color: textColor }]}
+              value={senha}
+              onChangeText={setSenha}
+            />
+            <TouchableOpacity onPress={() => setPasswordVisible(!passwordVisible)}>
+              {passwordVisible ? <Eye color={iconColor} size={25} /> : <EyeOff color={iconColor} size={25} />}
+            </TouchableOpacity>
+          </View>
 
           <TouchableOpacity
             onPress={handleProximo}
@@ -282,7 +336,7 @@ export default function CadastroEmpresaScreen() {
               },
             ]}
           >
-            <Text style={styles.loginTextButton}>Próximo</Text>
+            <Text style={styles.loginTextButton}>Cadastrar</Text>
           </TouchableOpacity>
 
           <TouchableOpacity onPress={() => navigation.navigate('Login')}>
@@ -381,6 +435,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     gap: 10,
+  },
+  passwordWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderRadius: 4,
+    paddingHorizontal: 10,
+    marginBottom: 12,
+    minHeight: INPUT_HEIGHT,
+  },
+  passwordInput: {
+    flex: 1,
+    fontFamily: 'Alice',
+    fontSize: 14,
   },
   loginButton: {
     alignSelf: 'center',

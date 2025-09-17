@@ -8,15 +8,20 @@ import { AntDesign, FontAwesome } from '@expo/vector-icons';
 import { useFonts } from 'expo-font';
 import { Eye, EyeOff } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import CadastroFundo from '../../Style/Backgrounds/CadUsuario_Fundo';
 import { getResponsiveSizes } from '../../Style/Responsive';
 import { Picker } from '@react-native-picker/picker';
+import { registerUser } from "../../firebase/authFirebase";
+import { addUser } from "../../firebase/cloudFirestore";
 
 export default function CadastroUsuario2() {
   const navigation = useNavigation();
+  const route = useRoute();
   const insets = useSafeAreaInsets();
   const { width, height } = useWindowDimensions();
+
+  const { nome, email, senha, dataNascimento, sexo } = route.params || {};
 
   const {
     subtitleFontSize,
@@ -94,12 +99,34 @@ export default function CadastroUsuario2() {
   const placeholderColor = keyboardVisible ? '#fff' : '#aaa';
   const iconColor = keyboardVisible ? '#fff' : '#aaa';
 
-  const handleCadastrar = () => {
+  const handleCadastrar = async () => {
     if (!estado || !cidade || !endereco.trim() || !emailConfirm.trim() || !senhaConfirm.trim()) {
       alert('Por favor, preencha todos os campos obrigatórios.');
       return;
     }
-    navigation.navigate('Login');
+    if (email !== emailConfirm || senha !== senhaConfirm) {
+      alert('Email ou senha não conferem.');
+      return;
+    }
+    try {
+      await registerUser(email, senha);
+      const userData = {
+        nome,
+        email,
+        dataNascimento,
+        sexo,
+        estado,
+        cidade,
+        endereco,
+        tipo: 'usuario'
+      };
+      await addUser(userData);
+      alert('Cadastro realizado com sucesso!');
+      navigation.navigate('Login');
+    } catch (error) {
+      console.log("Erro ao cadastrar:", error.message);
+      alert('Erro ao cadastrar: ' + error.message);
+    }
   };
 
   if (!fontsLoaded) return null;

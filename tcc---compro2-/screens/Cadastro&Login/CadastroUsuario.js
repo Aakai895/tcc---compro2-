@@ -90,7 +90,13 @@ export default function CadastroUsuario2() {
       alert('Por favor, preencha todos os campos obrigatórios.');
       return;
     }
-    navigation.navigate('CadastroUsuario2'); 
+    navigation.navigate('CadastroUsuario2', {
+      nome,
+      email,
+      senha: senhaConfirm,
+      dataNascimento: dataNascimento.toISOString(),
+      sexo
+    });
   };
 
   function formatarData(date) {

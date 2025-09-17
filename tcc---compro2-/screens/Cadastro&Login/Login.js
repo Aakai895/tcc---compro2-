@@ -9,7 +9,8 @@ import { Eye, EyeOff } from 'lucide-react-native';
 import { useFonts } from 'expo-font';
 import { getResponsiveSizes } from '../../Style/Responsive';
 import { useNavigation } from '@react-navigation/native';
-import { loginUser } from "../firebase/authFirebase";
+import { loginUser } from "../../firebase/authFirebase";
+import { addLogin } from "../../firebase/cloudFirestore";
 
 export default function LoginScreen() {
   const navigation = useNavigation();
@@ -91,8 +92,11 @@ export default function LoginScreen() {
     }
     try {
       await loginUser(cpfCnpj, senha);
+      await addLogin(cpfCnpj, new Date().toISOString());
+      alert('Login realizado com sucesso!');
     } catch (error) {
       console.log("Erro ao logar:", error.message);
+      alert('Erro ao logar: ' + error.message);
     }
   }
 
